@@ -4,12 +4,10 @@ import React from 'react';
 
 function App() {
   const [keyValue,setKeyValue] = React.useState(0)
-  const [firstOpd,setFirstOpd] = React.useState(0)
-  /*Comma has already been clicked(So second one has no meaning) */
-  const [commaClicked,setCommaClicked] = React.useState(false)
-  /*Comma has already been inserted into the numer(avoid having (45.67.4).toString()*/
+  const [firstOpd,setFirstOpd] = React.useState('')
+  const [secondOpd,setSecondOpd] = React.useState('')
+  const [negate,setNagate] = React.useState(false)
   const [commaInserted,setCommaInserted] = React.useState(false)
-  const [secondOpd,setSecondOpd] = React.useState(0)
   const [answer,setAnswer] = React.useState('')
   const [opChosen,setOpChosen] = React.useState(false)
   const [chosenOp,setChosenOp] = React.useState(null)
@@ -19,24 +17,49 @@ function App() {
       setKeyValue(prevState =>prevState==0?val:prevState+val.toString())
       const operators = ['+','-','x','/']
       if(operators.includes(val)){
-        setOpChosen(true)
-        setChosenOp(val)
+        if(!opChosen){
+          setOpChosen(true)
+          setChosenOp(val)
+        }
+        else{
+          /*An operate symbol has already been clicked so we overite previous
+          if it's not '-' otherwise nagate the second operand
+          */
+          if(secondOpd===''){
+            if(val==='-'){
+              setNagate(true)
+            }
+            else{
+              setChosenOp(val)
+            }
+          }
+        }
       }
       else if(val==='='){
         setAnswer((()=> {
+          const preMulti = negate? -1: 1
           switch(chosenOp){
             case '+' :
-              return +(firstOpd) + (+(secondOpd))
+              return +(firstOpd) + (preMulti * (+(secondOpd)))
             case '-' :
-              return +(firstOpd) - (+(secondOpd))
+              return +(firstOpd) - (preMulti * (+(secondOpd)))
             case 'x' :
-              return +(firstOpd) * (+(secondOpd))
+              return +(firstOpd) * (preMulti * (+(secondOpd)))
             case '/' :
-              return +(firstOpd) / (+(secondOpd))
+              return +(firstOpd) / (preMulti * (+(secondOpd)))
             default  :
             return ''
           }
         }))
+      }
+      else if(val==='clr'){
+        setKeyValue('')
+        setAnswer('')
+        setFirstOpd('')
+        setSecondOpd('')
+        setNagate(false)
+        setOpChosen(false)
+        setChosenOp(null)
       }
       else{     
         if(!opChosen){
