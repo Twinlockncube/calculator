@@ -1,87 +1,58 @@
 import logo from './logo.svg';
 import './App.css';
-import React from 'react';
+import React, { useRef } from 'react';
 
 function App() {
   const [keyValue,setKeyValue] = React.useState(0)
-  const [firstOpd,setFirstOpd] = React.useState('')
-  const [secondOpd,setSecondOpd] = React.useState('')
-  const [negate,setNagate] = React.useState(false)
   const [commaInserted,setCommaInserted] = React.useState(false)
   const [answer,setAnswer] = React.useState('')
-  const [opChosen,setOpChosen] = React.useState(false)
-  const [chosenOp,setChosenOp] = React.useState(null)
+  let expression = useRef('')
 
   const handleClick = (val) => {
     if(!(commaInserted && val==='.')){
-      setKeyValue(prevState =>prevState==0?val:prevState+val.toString())
-      const operators = ['+','-','x','/']
-      if(operators.includes(val)){
-        if(!opChosen){
-          setOpChosen(true)
-          setChosenOp(val)
-        }
-        else{
-          /*An operate symbol has already been clicked so we overite previous
-          if it's not '-' otherwise nagate the second operand
-          */
-          if(secondOpd===''){
-            if(val==='-'){
-              setNagate(true)
-            }
-            else{
-              setChosenOp(val)
-            }
-          }
-        }
-      }
-      else if(val==='='){
-        setAnswer((()=> {
-          const preMulti = negate? -1: 1
-          switch(chosenOp){
-            case '+' :
-              return +(firstOpd) + (preMulti * (+(secondOpd)))
-            case '-' :
-              return +(firstOpd) - (preMulti * (+(secondOpd)))
-            case 'x' :
-              return +(firstOpd) * (preMulti * (+(secondOpd)))
-            case '/' :
-              return +(firstOpd) / (preMulti * (+(secondOpd)))
-            default  :
-            return ''
-          }
-        }))
+      const ops = ['+','-','*','/']
+      if(val==='='){
+        const ans = eval(expression.current)
+        expression.current = ans.toString()
+        setAnswer(ans)
+        setKeyValue(ans)
       }
       else if(val==='clr'){
-        setKeyValue('')
+        expression.current = ''
         setAnswer('')
-        setFirstOpd('')
-        setSecondOpd('')
-        setNagate(false)
-        setOpChosen(false)
-        setChosenOp(null)
+        setKeyValue('0')
+        setCommaInserted(false)
       }
-      else{     
-        if(!opChosen){
-          setFirstOpd(prevState=> {
-            return prevState==0?val:prevState+val.toString()
-          })
+      else{
+        setKeyValue(prevState =>prevState==0?val:prevState+val.toString())
+        
+        if(ops.includes(val)){
+          setCommaInserted(false)
+          if(val==='-'){
+            expression.current += val
+          }
+          else{
+            const arrExpr = Array.from(expression.current)
+            while(ops.includes(arrExpr[arrExpr.length-1])){
+              arrExpr.pop()
+            }               
+            expression.current = arrExpr.join('') + val
+          }
         }
         else{
-          setSecondOpd(prevState=>prevState==0?val:prevState+val.toString())
-        }
-        if(val==='.'){
-          setCommaInserted(true)
+          if(val==='.'){
+            setCommaInserted(true)
+          }
+          expression.current += val
         }
       }
     }
-
   }
 
   return (
     <div className="App">
         <div id="display">
-          <span>{keyValue}</span><span id='answer'>{answer}</span>
+          <span>{keyValue}</span><span className='answer'>{answer}</span>
         </div>
         <div className="keys">
           <button id='zero'     onClick={() => handleClick(0)}>0</button>
@@ -96,7 +67,7 @@ function App() {
           <button id='nine'     onClick={() => handleClick(9)}>9</button>
           <button id='add'      onClick={() => handleClick('+')}>+</button>
           <button id='subtract' onClick={() => handleClick('-')}>-</button>
-          <button id='multiply' onClick={() => handleClick('x')}>X</button>
+          <button id='multiply' onClick={() => handleClick('*')}>X</button>
           <button id='divide'   onClick={() => handleClick('/')}>/</button>
           <button id='decimal'  onClick={() => handleClick('.')}>.</button>
           <button id='clear'    onClick={() => handleClick('clr')}>Clr</button>
